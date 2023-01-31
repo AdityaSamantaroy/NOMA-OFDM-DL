@@ -1,0 +1,60 @@
+% This script is to launch the training of the neural network, based on the
+% training data.
+% =========================================================================
+
+% clear variables;
+% close all;
+
+% Load training data and essential parameters
+load('trainData.mat','XTrain','YTrain');
+load("testData.mat", 'XTest', 'YTest');
+
+numSC = 64;
+
+% Batch size
+miniBatchSize = 1000;
+
+% Iteration
+maxEpochs = 100;
+
+% Sturcture
+inputSize = [numSC 6];
+numHiddenUnits = 128; 
+numHiddenUnits2 = 64;
+numHiddenUnits3 = numSC;
+numClasses = 16;
+
+% DNN Layers
+layers = [ ...
+    imageInputLayer(inputSize, 'NormalizationDimension', 'element')
+    convolution2dLayer(7, 64, 'Stride',1, 'Padding', 'same')
+    reluLayer
+    convolution2dLayer(7, 64, 'Stride',1, 'Padding', 'same')
+    reluLayer
+    convolution2dLayer(7, 64, 'Stride',1, 'Padding', 'same')
+    reluLayer
+    fullyConnectedLayer(numClasses)
+    softmaxLayer
+    classificationLayer];
+analyzeNetwork(layers)
+
+% Training options
+options = trainingOptions('adam',...
+    'InitialLearnRate',0.01,...
+    'ValidationData',{XTest, YTest},...
+    'ExecutionEnvironment','auto', ...
+    'GradientThreshold',1, ...
+    'LearnRateDropFactor',0.1,...
+    'MaxEpochs',maxEpochs, ...
+    'MiniBatchSize',miniBatchSize, ...
+    'Shuffle','every-epoch', ...
+    'Verbose',1,...
+    'Plots','training-progress'); 
+
+% Train the neural network
+tic;
+net = trainNetwork(XTrain,YTrain,layers,options);
+toc;
+
+save('NN.mat','net');
+
